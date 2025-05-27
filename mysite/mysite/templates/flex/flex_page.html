@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: rgb(222, 207, 184);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<br>
+<center><h1></h1></center>
+
+<div>
+  {{ self.subtitle }}
+</div>
+
+<div class="container">
+  <br><br>
+  {% for block in page.content %}
+    {% include_block block %}
+    <br>
+  {% endfor %}
+</div>
+{% endblock %}

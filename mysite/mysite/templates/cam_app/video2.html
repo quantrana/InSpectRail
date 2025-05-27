@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+{% block extra_css %}
+{% load static %}
+
+    <style>
+      body{
+        padding-top: 100px;
+        background-color: rgb(222, 207, 184);
+      }
+       table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px 12px;
+            text-align: center;
+            border: 1px solid rgb(222, 207, 184);
+        }
+        th {
+            background-color: #444;
+            color: white;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+{% load static wagtailcore_tags wagtailimages_tags %}
+<center><h1 class="display-4">{{ page.name_title }}</h1></center>
+<div>
+    <center><p>{{ page.name_subtitle|richtext }}</p></center>
+</div>
+
+<center>
+  <div class="container-fluid" style="height:100%; padding-top:3%; display: block; overflow: auto;">
+    <div class="row" style="padding-bottom:1%;">
+      <div class="col-4">
+        <button type="button" onclick="changeTheVariableStartNorm()" id="pushMe3" class="btn btn-primary" name="button3">Start Normal</button>
+      </div>
+      <div class="col-4">
+        <button type="button" onclick="changeTheVariableStartAI()" id="pushMe5" class="btn btn-primary" name="button5">Start AI</button>
+      </div>
+      <div class="col-4">
+        <button type="button" onclick="changeTheVariableStop()" id="pushMe4" class="btn btn-primary" name="button4" disabled>Stop</button>
+      </div>
+    </div>
+    <h4>If video does not load, click the below buttons:</h4>
+      <center>
+        <div style="margin-bottom:10px;">
+          <button type="button" id="ntbtn1" class="btn btn-primary" name="button" style="color:white" disabled>View in new tab</a>
+        </div>
+      </center>
+
+      <div class="videoWrapper" style="text-align: center; padding-bottom: 30px;">
+        <img  id="frame1"
+              src="{% static 'uploadimage/stop_placeholder.png' %}"
+              style="width: 100%; max-width: 800px; height: auto; border: 2px solid #ccc;"
+              alt="Video will appear here" />
+
+      </div>
+      
+      <table id="dashboard-table">
+          <thead>
+              <tr>
+                  <th>Timestamp</th>
+                  <th>Label</th>
+                  <th>Confidence</th>
+                  <th>Bounding Box</th>
+              </tr>
+          </thead>
+          <tbody id="dashboard-table-body">
+              <!-- Rows injected by JavaScript -->
+          </tbody>
+      </table> 
+      <button type ="button" id="reset-dashboard">Reset Dashboard</button>
+    </div>
+    <div>
+    </div>
+</div>
+</center>
+{% endblock %}
+{% block extra_js %}
+    <script type="text/javascript">
+      let dashboardInterval = null;
+      var url = "../no_video/"
+      document.getElementById("ntbtn1").addEventListener("click", function() {
+        window.open(url, "_blank");
+      });
+      function changeTheVariableStartNorm() {
+        const frame = document.getElementById('frame1');
+        url = "../camera_feed/";
+        frame.src = url;
+     
+        document.getElementById('pushMe5').disabled = true;
+        document.getElementById('pushMe4').disabled = false;
+        document.getElementById('ntbtn1').disabled = false;
+     }
+     
+      function changeTheVariableStartAI() {
+        const frame = document.getElementById('frame1');
+        url = "../camera_feed_AI/";
+        frame.src = url;
+    
+        document.getElementById('pushMe3').disabled = true;
+        document.getElementById('pushMe4').disabled = false;
+        document.getElementById('ntbtn1').disabled = false;
+    
+        if (!dashboardInterval) {
+          dashboardInterval = setInterval(fetchDashboardData, 2000);
+        }
+      }
+   
+      function changeTheVariableStop() {
+        const frame = document.getElementById('frame1');
+        url = "{% static 'uploadimage/stop_placeholder.png' %}";
+        frame.src = url;
+     
+        document.getElementById('pushMe5').disabled = false;
+        document.getElementById('pushMe3').disabled = false;
+        document.getElementById('pushMe4').disabled = true;
+        document.getElementById('ntbtn1').disabled = true;
+     
+        if (dashboardInterval) {
+          clearInterval(dashboardInterval);
+          dashboardInterval = null;
+        }
+     }
+     
+      
+      const displayedTimestamps = new Set();
+
+      function fetchDashboardData() {
+          fetch('/get_dashboard_data/')
+              .then(response => response.json())
+              .then(data => {
+                  const tableBody = document.querySelector('#dashboard-table-body');
+
+                  data.detections.forEach(item => {
+                      // Only add if timestamp not already shown
+                      if (!displayedTimestamps.has(item.timestamp)) {
+                          const row = document.createElement('tr');
+                          row.innerHTML = `
+                              <td>${item.timestamp}</td>
+                              <td>${item.label}</td>
+                              <td>${item.confidence}</td>
+                              <td>[${item.bounding_box.join(', ')}]</td>
+                          `;
+                          tableBody.appendChild(row);
+                          displayedTimestamps.add(item.timestamp);
+                      }
+                  });
+              })
+              .catch(error => console.error('Error fetching dashboard data:', error));
+      }
+
+      document.getElementById('reset-dashboard').addEventListener('click', () => {
+          const tableBody = document.querySelector('#dashboard-table-body');
+          tableBody.innerHTML = '';       
+          displayedTimestamps.clear();    
+      });
+    </script>
+{% endblock %}

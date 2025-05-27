@@ -1,0 +1,10 @@
+<div class="container text-center" style="max-width: 700px; margin: 0 auto; padding: 20px;">
+  <h3>{{ self.title }}</h3>
+  <video controls style="width: 100%; max-height: 500px; margin-top: 15px;">
+    <source src="{{ self.video.url }}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  {% if self.caption %}
+  <p>{{ self.caption }}</p>
+  {% endif %}
+</div>

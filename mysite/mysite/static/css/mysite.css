@@ -1,0 +1,94 @@
+/* Base Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7fb;
+    color: #2c3e50;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: #0845b3;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Navbar */
+.navbar {
+    background: linear-gradient(90deg, #083cb3, #0d6efd);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.nav-link {
+    color: #ffffff !important;
+    transition: color 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: #dce6f7 !important;
+}
+
+/* Container */
+.container {
+    padding-top: 100px;
+    padding-bottom: 60px;
+}
+
+/* Footer */
+footer {
+    font-size: 0.95rem;
+    background-color: #000000;
+    color: #ffffff;
+}
+
+footer hr {
+    border-top: 3px solid #ffffff;
+    opacity: 1;
+}
+
+footer a {
+    color: #ffffff;
+}
+
+footer a:hover {
+    color: #dce6f7;
+}
+
+footer .p-4 {
+    background: #0845b3;
+}
+
+footer .fw-bold {
+    color: #ffffff;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #0d6efd;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0a53be;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .navbar-brand,
+    .nav-link {
+        font-size: 18px;
+    }
+
+    .container {
+        padding-top: 80px;
+    }
+}

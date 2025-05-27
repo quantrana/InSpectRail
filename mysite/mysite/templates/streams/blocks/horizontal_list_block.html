@@ -1,0 +1,26 @@
+{% load wagtailimages_tags %}
+
+<div class="horizontal-list-block container py-4">
+    {% if self.title %}
+        <h3 class="mb-3 text-center"><b>{{ self.title }}</b></h3>
+    {% endif %}
+
+    <div 
+      class="d-flex flex-row gap-4"
+      style="
+        justify-content: center; 
+        overflow-x: auto;
+        scrollbar-width: thin;
+      "
+    >
+        {% for item in self.items %}
+            <div class="text-center" style="width: 350px;">
+                {% if item.image %}
+                    {% image item.image fill-300x150 as img %}
+                    <img src="{{ img.url }}" alt="{{ item.image.title }}" class="img-fluid mb-2" style="object-fit: cover; height: 150px;" />
+                {% endif %}
+                <p>{{ item.text }}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
