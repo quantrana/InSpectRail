@@ -1,30 +1,155 @@
-{% load wagtailimages_tags  %}
+{% load wagtailcore_tags wagtailimages_tags %}
 
-<div class="container">
-  <h3 class="text-center">{{ self.title }}</h3>
-  <div class="card-deck">
+{% block extra_css %}
+<style>
+  /* overall section wrapper */
+  .section {
+    padding: 2.5rem 1rem;
+    background: rgba(255,255,255,0.95);
+    margin-bottom: 2rem;
+    border-radius: 8px;
+  }
+
+  /* two-column panel */
+  .two-col-panel {
+    background: #fff;
+    color: #111;
+    padding: 4rem 0;
+  }
+  .two-col-panel .container {
+    max-width: 960px;
+  }
+
+  /* rows */
+  .two-col-panel .row {
+    position: relative;
+    margin-bottom: 4rem;
+    padding-bottom: 4rem;
+    border-bottom: 1px solid #eee;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all .6s ease;
+  }
+  .two-col-panel .row.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .two-col-panel .row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  /* alternate image/text order */
+  .two-col-panel .row:nth-child(even) .text-col {
+    order: 2;
+  }
+  .two-col-panel .row:nth-child(even) .image-wrapper {
+    order: 1;
+  }
+
+  /* text column */
+  .two-col-panel .text-col {
+    padding: 0 1rem;
+  }
+  .two-col-panel .section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff004f;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+  }
+  .two-col-panel .section-text {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #333;
+  }
+  .two-col-panel .section-text p {
+    margin-bottom: 1rem;
+  }
+
+  /* CTA button */
+  .two-col-panel .cta-button {
+    display: inline-block;
+    margin-top: 1.5rem;
+    background-color: #ff004f;
+    color: #fff;
+    font-weight: 600;
+    padding: .75rem 1.5rem;
+    border-radius: .25rem;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: background .3s ease, transform .3s ease, box-shadow .3s ease;
+  }
+  .two-col-panel .cta-button:hover {
+    background-color: #e6003f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  }
+
+  /* image column */
+  .two-col-panel .image-wrapper {
+    padding: 0 1rem;
+    overflow: hidden;
+    border-radius: .5rem;
+  }
+  .two-col-panel .image-wrapper img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform .5s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    border-radius: .5rem;
+  }
+  .two-col-panel .image-wrapper:hover img {
+    transform: scale(1.05);
+  }
+</style>
+{% endblock %}
+
+<section class="section">
+  <div class="container two-col-panel">
     {% for card in self.cards %}
-      {% image card.image height-500 as img %}
-        <div class="card">
-          <div class="card-body" style="display: flex; justify-content: center; align-items: center;">
-            <img src="{{ img.url }}" alt="{{ img.alt }}" class="card-img"/>
+      <div class="row align-items-center">
+        <div class="col-md-6 text-col">
+          <h3 class="section-title">{{ card.title }}</h3>
+          <div class="section-text">
+            {{ card.text|richtext }}
           </div>
-
-          <div class="card-footer">
-            <h5 class="card-title">{{ card.title }}</h5>
-            <p class="card-text">{{ card.text }}</p>
-              {% if card.button_page %}
-                <a href="{{ card.button_page.url }}" class="btn btn-primary">
-                  Know More (internal)
-                </a>
-
-              {% elif card.button_url %}
-                <a href="{{ card.button_url }}" class="btn btn-primary">
-                  Know More (external)
-                </a>
-              {% endif %}
-          </div>
+          {% if card.button_page %}
+            <a href="{% pageurl card.button_page %}" class="cta-button">
+              {{ card.button_label|default:"Learn more" }}
+            </a>
+          {% elif card.button_url %}
+            <a href="{{ card.button_url }}" target="_blank" class="cta-button">
+              {{ card.button_label|default:"Learn more" }}
+            </a>
+          {% endif %}
         </div>
+        <div class="col-md-6 image-wrapper">
+          {% image card.image original as img %}
+          <img src="{{ img.url }}" alt="{{ img.alt }}">
+        </div>
+      </div>
     {% endfor %}
   </div>
-</div>
+</section>
+
+{% block extra_js %}
+<script>
+// fade‐in rows when scrolled into view
+document.addEventListener('DOMContentLoaded', () => {
+  const rows = document.querySelectorAll('.two-col-panel .row');
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in-view');
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  rows.forEach(r => observer.observe(r));
+});
+</script>
+{% endblock %}

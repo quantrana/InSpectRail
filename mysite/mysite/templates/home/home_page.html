@@ -4,6 +4,7 @@
 {% block extra_css %}
 <style>
   body { background-color: rgb(222, 207, 184); }
+  .section { padding: 2.5rem 1rem; background: rgba(255,255,255,0.95); margin-bottom: 2rem; border-radius: 8px; }
 
   /* —— HERO —— */
   .hero-section {
@@ -26,19 +27,18 @@
     transform: scale(1.05);
     z-index: 1;
   }
-  .hero-overlay {
-    position: absolute;
-    top:0; left:0;
-    width:100%; height:100%;
-    background: rgba(0,0,0,0.3);
-    z-index: 2;
+  .hero-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.3); z-index:2; }
+  .hero-content {
+    position: relative; z-index:3;
+    text-align: center; color: #fff;
+    animation: fadeIn 1s ease-out;
   }
   .hero-content {
     position: relative;
     z-index: 3;
     color: #fff;
     text-align: center;
-    padding: 0 1rem;
+    padding: 0 1rem
   }
   .hero-title {
     font-size: 3rem;
@@ -52,6 +52,58 @@
     margin-left: auto;
     margin-right: auto;
   }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+    /* —— HOW IT WORKS FEATURE GRID —— */
+  .how-it-works .section-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #222;
+  }
+
+  .how-it-works .step {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+
+  .how-it-works .step.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .how-it-works .step-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 0.75rem;
+    background: #ff004f;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.5rem;
+  }
+
+  .how-it-works h5 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .how-it-works p {
+    color: #555;
+    font-size: 0.95rem;
+  }
+
   /* —— CTA BUTTON —— */
   .btn-detect {
     color: #fff !important;
@@ -105,12 +157,36 @@
 
 {% block content %}
 
-    <h3><b> How it works?</b></h3>
-  </div></center>
-  <center><h4 class=" ">Our system provides rapid and accurate detection and classification of train track defects, enabling railway authorities to identify issues promptly. By continuously monitoring railway infrastructure with advanced algorithms, we analyze and categorize different types of defects as they occur. This valuable information supports 
-    maintenance teams and decision-makers in prioritizing repairs and planning preventive measures, ultimately helping to maintain safe and efficient rail operations.</h4></center>
-  <br>
+    <!-- How it works? -->
+  <section class="how-it-works section">
+    <div class="container">
+      <h2 class="section-title text-center mb-5">How it works</h2>
+      <div class="row g-4">
+        <div class="col-6 col-md-3 step">
+          <div class="step-icon"><i class="bi bi-camera-reels"></i></div>
+          <h5>AI Detection</h5>
+          <p>Scans high-res track imagery in real time to spot cracks, squats & more.</p>
+        </div>
+        <div class="col-6 col-md-3 step">
+          <div class="step-icon"><i class="bi bi-bell-fill"></i></div>
+          <h5>Instant Alerts</h5>
+          <p>Auto-notify maintenance teams the moment a defect is found.</p>
+        </div>
+        <div class="col-6 col-md-3 step">
+          <div class="step-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+          <h5>Data Insights</h5>
+          <p>Dashboards & trend reports help you plan preventive work.</p>
+        </div>
+        <div class="col-6 col-md-3 step">
+          <div class="step-icon"><i class="bi bi-shield-lock-fill"></i></div>
+          <h5>Better Safety</h5>
+          <p>Catch problems early to keep rails safe & trains running on time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
   {# Example of an Orderable from home/models.py #}
+  <section class="section">
   <div class="container-fluid">
     <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
         <div class="carousel-inner">
@@ -131,6 +207,7 @@
         </a>
     </div>
   </div>
+  </section>
   <div class="container">
     <br>
     {% for block in page.contentCard %}
@@ -142,3 +219,24 @@
 
 
 {% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const steps = document.querySelectorAll('.how-it-works .step');
+      const obs = new IntersectionObserver((entries, o) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('in-view');
+            o.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.2 });
+
+      steps.forEach(s => obs.observe(s));
+    });
+  </script>
+{% endblock %}
+
