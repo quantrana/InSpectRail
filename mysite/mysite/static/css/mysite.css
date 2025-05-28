@@ -71,15 +71,6 @@ footer .fw-bold {
     color: #ffffff;
 }
 
-/* Buttons */
-.btn-primary {
-    background-color: #0d6efd;
-    border: none;
-}
-
-.btn-primary:hover {
-    background-color: #0a53be;
-}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -91,4 +82,36 @@ footer .fw-bold {
     .container {
         padding-top: 80px;
     }
+}
+
+/* Smooth scroll & images */
+html {
+    scroll-behavior: smooth;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.carousel-inner img {
+    border-radius: 12px;
+}
+
+/* Typography enhancements */
+.lead {
+    font-size: 1.25rem;
+    color: #444;
+}
+
+.section-title {
+    font-weight: 700;
+    font-size: 2.5rem;
+    color: #222;
+    margin-bottom: 1.5rem;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
 }
