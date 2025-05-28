@@ -1,162 +1,224 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags %}
+{% load wagtailcore_tags wagtailimages_tags static %}
+
 {% block extra_css %}
-{% load static %}
+<style>
+  /* —— HERO —— */
+  .hero-section {
+    position: relative;
+    width: 100%;
+    height: 70vh;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .hero-bg {
+    
+    position: absolute; inset: 0;
+    background-size: cover;
+    background-image: url("{% static 'images/image.height-500.png' %}");
+    background-position: center;
+    filter: blur(6px) brightness(0.5);
+    transform: scale(1.05);
+    z-index: 1;
+  }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 2;
+  }
+  .hero-content {
+    position: relative; z-index: 3;
+    color: #fff; text-align: center;
+    padding: 0 1rem;
+  }
+  .hero-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+  }
 
-    <style>
-      body{
-        padding-top: 100px;
-        background-color: rgb(222, 207, 184);
-      }
-       table {
-            width: 80%;
-            margin: auto;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 8px 12px;
-            text-align: center;
-            border: 1px solid rgb(222, 207, 184);
-        }
-        th {
-            background-color: #444;
-            color: white;
-        }
-    </style>
+  /* —— BUTTONS —— */
+  .btn-video {
+    font-weight:600; border-radius:6px;
+    padding:.75rem 1.5rem; transition:all .3s;
+  }
+  .btn-video.primary {
+    background:transparent; color:#ff004f;
+    border:2px solid #ff004f;
+  }
+  .btn-video.primary:hover,
+  .btn-video.primary.active {
+    background:#ff004f; color:#fff;
+    transform:translateY(-2px);
+    box-shadow:0 4px 12px rgba(255,0,79,0.5);
+  }
+
+  /* —— VIDEO FRAME —— */
+  .videoWrapper img {
+    width:100%; max-width:800px;
+    border:4px solid #fff; border-radius:8px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+  }
+
+  /* —— DASHBOARD TABLE —— */
+  .dashboard-table {
+    width:100%; border-collapse:collapse; margin:2rem auto;
+  }
+  .dashboard-table th, .dashboard-table td {
+    padding:.75rem; text-align:center;
+    border:1px solid rgba(0,0,0,0.1);
+  }
+  .dashboard-table thead {
+    background:rgba(0,0,0,0.6); color:#fff;
+    backdrop-filter:blur(4px);
+  }
+  .dashboard-table tbody tr:nth-child(even) {
+    background:rgba(255,255,255,0.8);
+  }
+  .dashboard-table tbody tr:hover {
+    background:rgba(255,0,79,0.1);
+  }
+
+  /* —— GLOBAL LAYOUT —— */
+  body { background-color: rgb(222,207,184); }
+  .section { padding:3rem 1rem; }
+</style>
 {% endblock %}
+
+{% block hero %}
+<section class="hero-section">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>Turn Camera On &amp; Start Detecting Defects Now!</h1>
+  </div>
+</section>
+{% endblock %}
+
 {% block content %}
-{% load static wagtailcore_tags wagtailimages_tags %}
-<center><h1 class="display-4">{{ page.name_title }}</h1></center>
-<div>
-    <center><p>{{ page.name_subtitle|richtext }}</p></center>
+<div class="container section text-center">
+  <div class="row g-3 justify-content-center mb-4">
+    <div class="col-sm-6 col-md-4">
+      <button id="pushMe3" class="btn-video primary w-100">Start Normal</button>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <button id="pushMe5" class="btn-video primary w-100">Start AI</button>
+    </div>
+    <div class="col-sm-6 col-md-4">
+      <button id="pushMe4" class="btn-video primary w-100" disabled>Stop</button>
+    </div>
+  </div>
+
+
+
+  <div class="videoWrapper mb-5 text-center">
+    <img id="frame1"
+         src="{% static 'uploadimage/stop_placeholder.png' %}"
+         alt="Video Frame">
+  </div>
+
+  <table class="dashboard-table">
+    <thead>
+      <tr>
+        <th>Timestamp</th><th>Label</th>
+        <th>Confidence</th><th>Bounding Box</th>
+      </tr>
+    </thead>
+    <tbody id="dashboard-table-body"></tbody>
+  </table>
+
+  <button id="reset-dashboard" class="btn-video primary mt-4">
+    Reset Dashboard
+  </button>
 </div>
-
-<center>
-  <div class="container-fluid" style="height:100%; padding-top:3%; display: block; overflow: auto;">
-    <div class="row" style="padding-bottom:1%;">
-      <div class="col-4">
-        <button type="button" onclick="changeTheVariableStartNorm()" id="pushMe3" class="btn btn-primary" name="button3">Start Normal</button>
-      </div>
-      <div class="col-4">
-        <button type="button" onclick="changeTheVariableStartAI()" id="pushMe5" class="btn btn-primary" name="button5">Start AI</button>
-      </div>
-      <div class="col-4">
-        <button type="button" onclick="changeTheVariableStop()" id="pushMe4" class="btn btn-primary" name="button4" disabled>Stop</button>
-      </div>
-    </div>
-    <h4>If video does not load, click the below buttons:</h4>
-      <center>
-        <div style="margin-bottom:10px;">
-          <button type="button" id="ntbtn1" class="btn btn-primary" name="button" style="color:white" disabled>View in new tab</a>
-        </div>
-      </center>
-
-      <div class="videoWrapper" style="text-align: center; padding-bottom: 30px;">
-        <img  id="frame1"
-              src="{% static 'uploadimage/stop_placeholder.png' %}"
-              style="width: 100%; max-width: 800px; height: auto; border: 2px solid #ccc;"
-              alt="Video will appear here" />
-
-      </div>
-      
-      <table id="dashboard-table">
-          <thead>
-              <tr>
-                  <th>Timestamp</th>
-                  <th>Label</th>
-                  <th>Confidence</th>
-                  <th>Bounding Box</th>
-              </tr>
-          </thead>
-          <tbody id="dashboard-table-body">
-              <!-- Rows injected by JavaScript -->
-          </tbody>
-      </table> 
-      <button type ="button" id="reset-dashboard">Reset Dashboard</button>
-    </div>
-    <div>
-    </div>
-</div>
-</center>
 {% endblock %}
+
 {% block extra_js %}
-    <script type="text/javascript">
-      let dashboardInterval = null;
-      var url = "../no_video/"
-      document.getElementById("ntbtn1").addEventListener("click", function() {
-        window.open(url, "_blank");
-      });
-      function changeTheVariableStartNorm() {
-        const frame = document.getElementById('frame1');
-        url = "../camera_feed/";
-        frame.src = url;
-     
-        document.getElementById('pushMe5').disabled = true;
-        document.getElementById('pushMe4').disabled = false;
-        document.getElementById('ntbtn1').disabled = false;
-     }
-     
-      function changeTheVariableStartAI() {
-        const frame = document.getElementById('frame1');
-        url = "../camera_feed_AI/";
-        frame.src = url;
-    
-        document.getElementById('pushMe3').disabled = true;
-        document.getElementById('pushMe4').disabled = false;
-        document.getElementById('ntbtn1').disabled = false;
-    
-        if (!dashboardInterval) {
-          dashboardInterval = setInterval(fetchDashboardData, 2000);
-        }
-      }
-   
-      function changeTheVariableStop() {
-        const frame = document.getElementById('frame1');
-        url = "{% static 'uploadimage/stop_placeholder.png' %}";
-        frame.src = url;
-     
-        document.getElementById('pushMe5').disabled = false;
-        document.getElementById('pushMe3').disabled = false;
-        document.getElementById('pushMe4').disabled = true;
-        document.getElementById('ntbtn1').disabled = true;
-     
-        if (dashboardInterval) {
-          clearInterval(dashboardInterval);
-          dashboardInterval = null;
-        }
-     }
-     
-      
-      const displayedTimestamps = new Set();
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const btnNorm   = document.getElementById('pushMe3');
+  const btnAI     = document.getElementById('pushMe5');
+  const btnStop   = document.getElementById('pushMe4');
+  const frame     = document.getElementById('frame1');
+  const tableBody = document.getElementById('dashboard-table-body');
+  const resetBtn  = document.getElementById('reset-dashboard');
+  const seen      = new Set();
+  let dashboardInterval = null;
 
-      function fetchDashboardData() {
-          fetch('/get_dashboard_data/')
-              .then(response => response.json())
-              .then(data => {
-                  const tableBody = document.querySelector('#dashboard-table-body');
+  const NO_VIDEO_URL    = "../no_video/";
+  const PLACEHOLDER_SRC = "{% static 'uploadimage/stop_placeholder.png' %}";
 
-                  data.detections.forEach(item => {
-                      // Only add if timestamp not already shown
-                      if (!displayedTimestamps.has(item.timestamp)) {
-                          const row = document.createElement('tr');
-                          row.innerHTML = `
-                              <td>${item.timestamp}</td>
-                              <td>${item.label}</td>
-                              <td>${item.confidence}</td>
-                              <td>[${item.bounding_box.join(', ')}]</td>
-                          `;
-                          tableBody.appendChild(row);
-                          displayedTimestamps.add(item.timestamp);
-                      }
-                  });
-              })
-              .catch(error => console.error('Error fetching dashboard data:', error));
-      }
+  function toggleButtons(mode) {
+    [btnNorm, btnAI].forEach(b => b.classList.remove('active'));
+    [btnNorm, btnAI, btnStop].forEach(b => b.disabled = false);
+    btnStop.disabled   = true;
 
-      document.getElementById('reset-dashboard').addEventListener('click', () => {
-          const tableBody = document.querySelector('#dashboard-table-body');
-          tableBody.innerHTML = '';       
-          displayedTimestamps.clear();    
-      });
-    </script>
+    if (mode === 'norm') {
+      btnNorm.disabled = true;
+      btnNorm.classList.add('active');
+      btnStop.disabled   = false;
+    } else if (mode === 'ai') {
+      btnAI.disabled = true;
+      btnAI.classList.add('active');
+      btnStop.disabled   = false;
+    }
+  }
+
+  btnNorm.addEventListener('click', () => {
+    frame.src = "../camera_feed/";
+    toggleButtons('norm');
+    clearInterval(dashboardInterval);
+    dashboardInterval = null;
+  });
+
+  btnAI.addEventListener('click', () => {
+    frame.src = "../camera_feed_AI/";
+    toggleButtons('ai');
+    if (!dashboardInterval) {
+      dashboardInterval = setInterval(fetchDashboardData, 2000);
+    }
+  });
+
+  btnStop.addEventListener('click', () => {
+    // Immediately show placeholder
+    frame.src = PLACEHOLDER_SRC;
+    // Tell server to stop capturing
+    fetch(NO_VIDEO_URL).catch(console.error);
+    // Stop polling, but leave existing table data intact
+    clearInterval(dashboardInterval);
+    dashboardInterval = null;
+    toggleButtons();  // clear active state
+  });
+
+
+  resetBtn.addEventListener('click', () => {
+    tableBody.innerHTML = '';
+    seen.clear();
+  });
+
+  function fetchDashboardData() {
+    fetch('/get_dashboard_data/')
+      .then(r => r.json())
+      .then(data => {
+        data.detections.forEach(item => {
+          if (!seen.has(item.timestamp)) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${item.timestamp}</td>
+              <td>${item.label}</td>
+              <td>${item.confidence}</td>
+              <td>[${item.bounding_box.join(', ')}]</td>
+            `;
+            tableBody.append(row);
+            seen.add(item.timestamp);
+          }
+        });
+      })
+      .catch(console.error);
+  }
+});
+</script>
 {% endblock %}
