@@ -11,7 +11,6 @@
     overflow: hidden; margin-bottom: 1rem;
   }
   .hero-bg {
-    
     position: absolute; inset: 0;
     background-size: cover;
     background-image: url("{% static 'images/image.height-500.png' %}");
@@ -87,8 +86,8 @@
     padding:.75rem 1.5rem; transition:all .3s;
   }
   .btn-video.primary {
-    background: transparent; 
-    color: #ff004f; 
+    background: transparent;
+    color: #ff004f;
     border: 2px solid #ff004f;
     margin-left: 70px;
     margin-top: 40px;
@@ -99,7 +98,6 @@
     box-shadow: 0 4px 12px rgba(255,0,79,0.5);
   }
 
-  
   /* List group */
   .list-group-item {
     border: none; border-radius:4px; margin-bottom:.3rem;
@@ -122,17 +120,19 @@
   }
 
   /* Tabs */
-  .nav-tabs .nav-link.active {
-    font-weight: 600; border-color: #ff004f;
-    color: #ff004f;
+  .btn-video.active {
+    background: #ff004f; color: #fff;
   }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<!-- Ensure Bootstrap JS is loaded for tab functionality -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
 <script>
 $(function(){
+  // File drop & preview
   const dropArea = $('.file-drop-area');
   dropArea.on('dragenter dragover', e => {
     e.preventDefault();
@@ -145,26 +145,31 @@ $(function(){
   dropArea.on('change', '.file-input', function() {
     const files = this.files;
     const $msg = $(this).prev();
-    if (files.length === 1) {
-      $msg.text(files[0].name);
-    } else {
-      $msg.text(files.length + ' files selected');
-    }
+    $msg.text(files.length === 1 ? files[0].name : files.length + ' files selected');
     const preview = $('#img-preview').empty();
     Array.from(files).forEach(file => {
       const reader = new FileReader();
-      reader.onload = e => {
-        $('<img>').attr('src', e.target.result).appendTo(preview);
-      };
+      reader.onload = e => $('<img>').attr('src', e.target.result).appendTo(preview);
       reader.readAsDataURL(file);
     });
+  });
+
+  // Tab toggle functionality
+  $('.btn-video[data-toggle="tab"]').on('click', function(e) {
+    e.preventDefault();
+    const target = $(this).data('target');
+    // Toggle active state on buttons
+    $('.btn-video[data-toggle="tab"]').removeClass('active');
+    $(this).addClass('active');
+    // Show/hide tab panes
+    $('.tab-pane').removeClass('show active');
+    $(target).addClass('show active');
   });
 });
 </script>
 {% endblock %}
 
-  <!-- Hero -->
-  {% block hero %}
+{% block hero %}
   <section class="hero-section">
     <div class="hero-bg"></div>
     <div class="hero-overlay"></div>
@@ -173,7 +178,7 @@ $(function(){
       <p class="lead">{{ page.name_subtitle|richtext }}</p>
     </div>
   </section>
-  {% endblock %}
+{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -181,61 +186,20 @@ $(function(){
   <!-- Upload & Start -->
   <section class="section text-center">
     <div class="d-flex justify-content-center flex-wrap gap-5">
-      {# ───────── UPLOAD FORM ───────── #}
-      <form method="POST" enctype="multipart/form-data"
-            class="w-auto">
+      <form method="POST" enctype="multipart/form-data" class="w-auto">
         {% csrf_token %}
         <div class="file-drop-area">
-          <span class="choose-file-button">
-            <i class="bi bi-upload"></i> Choose Files
-          </span>
+          <span class="choose-file-button"><i class="bi bi-upload"></i> Choose Files</span>
           <span class="file-message">or drag &amp; drop here</span>
-          <input type="file"
-                 name="file_data"
-                 class="file-input"
-                 accept=".jfif,.jpg,.jpeg,.png,.gif"
-                 multiple>
+          <input type="file" name="file_data" class="file-input" accept=".jfif,.jpg,.jpeg,.png,.gif" multiple>
         </div>
-        <div id="img-preview"
-             class="img-preview d-flex flex-wrap mt-3"></div>
-
-        <!-- … your file-drop & preview above … -->
         <div id="img-preview" class="img-preview d-flex flex-wrap mt-3"></div>
-
-        <!-- ─── button row ─── -->
         <div class="button-row d-flex justify-content-center align-items-center gap-4 mt-4">
-          <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <button type="submit" class="btn-video primary px-5">
-              Upload
-            </button>
-          </form>
-
-          <form method="POST">
-            {% csrf_token %}
-            <button type="submit" name="start" class="btn-video primary px-5">
-              Start Detection
-            </button>
-          </form>
+          <button type="submit" class="btn-video primary px-5">Upload</button>
+          <button type="submit" name="start" class="btn-video primary px-5">Start Detection</button>
         </div>
-
-        {% comment %} <button type="submit" class="btn-video primary px-5">
-          Upload
-        </button>
       </form>
-  
-      {# ───────── START DETECTION FORM ───────── #}
-      <form method="POST"
-            class="w-auto ms-2 mt-2">
-        {% csrf_token %}
-        <button type="submit" name="start"
-                class="btn-video primary" style="flex: 0 0 auto;
-                                                  padding: 0.75rem 2rem;
-                                                  max-width: 250px;">
-          <i class="bi bi-play-circle"></i> Start Detection
-        </button>
-      </form>{% endcomment %}
-    </div> 
+    </div>
   </section>
 
   <!-- Uploaded Files -->
@@ -243,68 +207,44 @@ $(function(){
     <h5>Uploaded Files</h5>
     <ul class="list-group">
       {% for file in my_uploaded_file_names %}
-        <li class="list-group-item">
-          <a href="{{ file }}" target="_blank">{{ file|slice:"-30:" }}</a>
-        </li>
+        <li class="list-group-item"><a href="{{ file }}" target="_blank">{{ file|slice:"-30:" }}</a></li>
       {% empty %}
         <li class="list-group-item">No files uploaded yet.</li>
       {% endfor %}
     </ul>
   </section>
 
-  <!-- Raw / Result Tabs & Carousels -->
+  <!-- Tabs & Carousels -->
   <section class="section">
-    <ul class="nav nav-tabs mb-4" id="imageTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="raw-tab" data-toggle="tab" data-target="#raw" type="button" role="tab">
-          Raw Images
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="result-tab" data-toggle="tab" data-target="#result" type="button" role="tab">
-          Result Images
-        </button>
-      </li>
-    </ul>
+    <div class="d-flex justify-content-center gap-4 mb-4">
+      <button type="button" class="btn-video primary active" data-toggle="tab" data-target="#raw">Raw Images</button>
+      <button type="button" class="btn-video primary" data-toggle="tab" data-target="#result">Result Images</button>
+    </div>
     <div class="tab-content">
-      <!-- Raw -->
       <div class="tab-pane fade show active" id="raw" role="tabpanel">
         <div id="carouselRaw" class="carousel slide" data-ride="carousel">
           <div class="carousel-inner">
             {% for file in my_uploaded_file_names %}
               <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <a href="{{ file }}" target="_blank">
-                  <img src="{{ file }}" class="d-block carousel-image">
-                </a>
+                <a href="{{ file }}" target="_blank"><img src="{{ file }}" class="d-block carousel-image"></a>
               </div>
             {% endfor %}
           </div>
-          <a class="carousel-control-prev" href="#carouselRaw" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-          </a>
-          <a class="carousel-control-next" href="#carouselRaw" role="button" data-slide="next">
-            <span class="carousel-control-next-icon"></span>
-          </a>
+          <a class="carousel-control-prev" href="#carouselRaw" role="button" data-slide="prev"><span class="carousel-control-prev-icon"></span></a>
+          <a class="carousel-control-next" href="#carouselRaw" role="button" data-slide="next"><span class="carousel-control-next-icon"></span></a>
         </div>
       </div>
-      <!-- Result -->
       <div class="tab-pane fade" id="result" role="tabpanel">
         <div id="carouselResult" class="carousel slide" data-ride="carousel">
           <div class="carousel-inner">
             {% for file in my_result_file_names %}
               <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <a href="{{ file }}" target="_blank">
-                  <img src="{{ file }}" class="d-block carousel-image">
-                </a>
+                <a href="{{ file }}" target="_blank"><img src="{{ file }}" class="d-block carousel-image"></a>
               </div>
             {% endfor %}
           </div>
-          <a class="carousel-control-prev" href="#carouselResult" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-          </a>
-          <a class="carousel-control-next" href="#carouselResult" role="button" data-slide="next">
-            <span class="carousel-control-next-icon"></span>
-          </a>
+          <a class="carousel-control-prev" href="#carouselResult" role="button" data-slide="prev"><span class="carousel-control-prev-icon"></span></a>
+          <a class="carousel-control-next" href="#carouselResult" role="button" data-slide="next"><span class="carousel-control-next-icon"></span></a>
         </div>
       </div>
     </div>
