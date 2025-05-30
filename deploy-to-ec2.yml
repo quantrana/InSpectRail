@@ -1,0 +1,52 @@
+name: Deploy GUI to EC2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create SSH key file
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Copy GUI and service files to EC2
+        run: |
+          scp -i private_key.pem -o StrictHostKeyChecking=no -r GUI/ ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/InSpecRail/
+
+      - name: Deploy on EC2 with systemd
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/InSpecRail/mysite
+
+            # Stop services if running
+            sudo systemctl stop mysite.service || true
+
+            # Setup venv
+            python3 -m venv inspecrail
+            . inspecrail/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+            # Move service files
+            sudo mv /home/ubuntu/InSpecRail/mysite.service /etc/systemd/system/
+
+            # Reload and enable services
+            sudo systemctl daemon-reexec
+            sudo systemctl daemon-reload
+            sudo systemctl enable mysite.service
+
+            # Start services
+            sudo systemctl restart mysite.service
+
+            echo "✅ Deployment completed using systemd services."
