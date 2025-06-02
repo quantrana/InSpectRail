@@ -78,10 +78,9 @@ Squat	Local depressions in the rail head
 Joint	Misalignment or gaps at track joints
 
 🧑‍💻 Contributors
+
 Anusha Pariti
-
-Quan Tran
-
+Anh Quan Tran
 Nicole Hutomo
 
 
@@ -89,7 +88,7 @@ Nicole Hutomo
 
 This project, "InSpectRail – Railway Track Defect Detection Using YOLOv11s", was developed as part of the academic coursework for subject **42028: Deep Learning and Convolutional Neural Networks**.
 
-Authors: Anusha Pariti, Quan Tran, Nicole Hutomo  
+Authors: Anusha Pariti,Anh Quan Tran, Nicole Hutomo  
 Project Number: 64 | Team Name: Deep Visionaries
 
 Permission is hereby granted to UTS faculty, students, and academic reviewers to view, evaluate, and reproduce this work for educational or assessment purposes only.
