@@ -39,9 +39,13 @@ InSpectRail/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/anupari14/InSpectRail.git
+git clone https://github.com/quantrana/InSpectRail.git
 cd InSpectRail
 
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+bash```
 
+### 2. Set up a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
