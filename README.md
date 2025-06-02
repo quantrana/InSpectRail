@@ -44,8 +44,59 @@ cd InSpectRail
 
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-bash```
+```
 
 ### 2. Set up a virtual environment
+```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+### 3. Install Dependencies 
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Run migrations
+```bash
+cd mysite
+python manage.py migrate
+```
+### 5. Start the development server
+```bash
+python manage.py runserver
+```
+Access the app at: http://127.0.0.1:8000/
+
+
+
+🎯 Defect Types Detected
+Defect Type	Description
+Crack	Fractures along the track surface
+Flaking	Peeling or surface material separation
+Squat	Local depressions in the rail head
+Joint	Misalignment or gaps at track joints
+
+🧑‍💻 Contributors
+Anusha Pariti
+
+Quan Tran
+
+Nicole Hutomo
+
+
+📜 License
+
+This project, "InSpectRail – Railway Track Defect Detection Using YOLOv11s", was developed as part of the academic coursework for subject **42028: Deep Learning and Convolutional Neural Networks**.
+
+Authors: Anusha Pariti, Quan Tran, Nicole Hutomo  
+Project Number: 64 | Team Name: Deep Visionaries
+
+Permission is hereby granted to UTS faculty, students, and academic reviewers to view, evaluate, and reproduce this work for educational or assessment purposes only.
+
+Any commercial use, redistribution, or derivative works outside of academic review is strictly prohibited without explicit written consent from the authors and the University of Technology Sydney.
+
+This codebase and accompanying materials are provided **as-is**, with no warranties expressed or implied.
+
+For inquiries, contact: [anusha.pariti@student.uts.edu.au]
+
