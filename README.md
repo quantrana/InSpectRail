@@ -2,7 +2,7 @@
 
 **AI-Powered Railway Track Defect Detection System**
 
-InSpectRail is a Django + Wagtail-based web application that leverages real-time computer vision to detect railway track defects using YOLOv11s. It allows users to upload images or stream video input and receive immediate defect classification.
+InSpectRail is a Django + Wagtail-based web application that leverages real-time computer vision model to detect railway track defects. It allows users to upload images or stream video input and receive immediate defect classification.
 
 ---
 
@@ -70,12 +70,7 @@ Access the app at: http://127.0.0.1:8000/
 
 
 
-🎯 Defect Types Detected
-Defect Type	Description
-Crack	Fractures along the track surface
-Flaking	Peeling or surface material separation
-Squat	Local depressions in the rail head
-Joint	Misalignment or gaps at track joints
+
 
 🧑‍💻 Contributors
 
