@@ -67,7 +67,11 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+
+
+
 🙏 Acknowledgements
+
 This project builds upon the foundational work provided in the GitarthVaishnav/Basic_Web_App repository, which was made available as part of the Deep Learning workshop. It served as a valuable starting point for developing our custom YOLOv11-based railway defect detection application.
 
 
