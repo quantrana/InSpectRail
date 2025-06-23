@@ -31,6 +31,7 @@ INSTALLED_APPS = INSTALLED_APPS = [
     'menus',
     'cam_app',
     'cam_app2',
+    'video_processor_app', # New app for video processing
 
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',

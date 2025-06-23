@@ -32,6 +32,10 @@ urlpatterns = [
     path('camera_feed_AI/', lambda r: StreamingHttpResponse(camera.generate_frames(camera.VideoCamera(), True),
                                                      content_type='multipart/x-mixed-replace; boundary=frame;')),
     path('get_dashboard_data/', views.get_dashboard_data, name='get_dashboard_data'),
+
+    # Video Processor App URLs
+    path('video/', include('video_processor_app.urls', namespace='video_processor_app')),
+
     path('', include(wagtail_urls)),
 
 ]

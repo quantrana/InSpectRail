@@ -88,6 +88,16 @@ class ImagePage(Page):
         return context
 
     def serve(self, request):
+        COLORS = [
+        (255, 255, 255),  # white
+        (0, 255, 255),    # cyan
+        (255, 0, 255),    # magenta
+        (0, 255, 0),      # green
+        (255, 255, 0),    # yellow
+        (0, 0, 255),      # red
+        (255, 0, 0)       # blue
+        ]
+
         emptyButtonFlag = False
         if request.POST.get('start')=="":
             context = self.reset_context(request)
@@ -181,9 +191,25 @@ class ImagePage(Page):
                             
                             text_to_display = f'{label} {float(confidence):.2f}'
                             
-                            cv2.rectangle(output_image_to_draw_on, (x1_orig, y1_orig), (x2_orig, y2_orig), (0, 255, 0), 2)
-                            cv2.putText(output_image_to_draw_on, text_to_display, (x1_orig, y1_orig - 10), 
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                            color = COLORS[cls_id_int % len(COLORS)]
+
+                            # Draw semi-transparent overlay (optional)
+                            overlay = output_image_to_draw_on.copy()
+                            cv2.rectangle(overlay, (x1_orig, y1_orig), (x2_orig, y2_orig), color, -1)
+                            alpha = 0.2
+                            cv2.addWeighted(overlay, alpha, output_image_to_draw_on, 1 - alpha, 0, output_image_to_draw_on)
+
+                            # Draw bounding box
+                            cv2.rectangle(output_image_to_draw_on, (x1_orig, y1_orig), (x2_orig, y2_orig), color, 2)
+
+                            # Draw label background
+                            (text_width, text_height), baseline = cv2.getTextSize(text_to_display, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)
+                            cv2.rectangle(output_image_to_draw_on, (x1_orig, y1_orig - text_height - 10), (x1_orig + text_width, y1_orig), color, -1)
+
+                            # Draw label text
+                            cv2.putText(output_image_to_draw_on, text_to_display, (x1_orig, y1_orig - 5),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+
 
                         # Saving and Context Update
                         fn_without_ext = img_filename_from_list.split('.')[0]

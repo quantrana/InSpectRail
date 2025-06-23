@@ -78,11 +78,15 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/">Home</a>
                     </li>
+                    
                     {% for item in navigation.menu_items.all %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ item.link }}"{% if item.open_in_new_tab %} target="_blank"{% endif %}>{{ item.title }}</a>
                         </li>
                     {% endfor %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'video_processor_app:video_upload' %}">Video</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -118,8 +122,8 @@
                     <h5 class="fw-bold text-uppercase">Contact</h5>
                     <hr style="background-color: white; height: 2px; width: 80px; margin-left: 0;">
                     <p><i class="bi bi-building"></i> <a class="text-white text-decoration-none" href="https://goo.gl/maps/PkCC26pqUeZbCh6F9" target="_blank">FEIT - UTS, 15 Broadway, Ultimo NSW</a></p>
-                    <p><i class="bi bi-envelope-fill"></i> <a class="text-white text-decoration-none" href="mailto:someone@something.com">someone@something.com</a></p>
-                    <p><i class="bi bi-phone-fill"></i> <a class="text-white text-decoration-none" href="tel:+6112345678">+61 1234 5678</a></p>
+                    <p><i class="bi bi-envelope-fill"></i> <a class="text-white text-decoration-none" href="mailto:wuang.work@gmail.com">wuang.work@gmail.com</a></p>
+                    <p><i class="bi bi-phone-fill"></i> <a class="text-white text-decoration-none" href="tel:+6112345678">+61 411 944 235</a></p>
                 </div>
             </div>
             <div class="text-center py-3">

@@ -49,4 +49,3 @@ def get_dashboard_data(request):
 
     _, _, dashboard = camera_instance.get_frame_with_detection()
     return JsonResponse({'detections': dashboard})
-

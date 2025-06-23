@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% load static wagtailcore_tags %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+
+  .hero-section {
+    position: relative; width: 100%; height: 70vh; min-height: 200px;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; background-size: cover;
+    background-image: url("{% static 'images/image.height-500.png' %}");
+    background-position: center; filter: blur(6px) brightness(0.5);
+    transform: scale(1.05); z-index: 1;
+  }
+  .hero-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.3); z-index:2; }
+  .hero-content {
+    position: relative; z-index:3; text-align: center; color: #fff;
+    animation: fadeIn 1s ease-out;
+  }
+  .hero-content h1 { font-size: 2.2rem; font-weight: 700; text-shadow: 0 2px 6px rgba(0,0,0,0.7); margin-bottom: .5rem; }
+  .hero-content .lead { font-size: 1rem; font-style: italic; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .btn-video { /* Defined in upload_video.html, ensure it's globally available or repeat here */
+    font-weight:600; border-radius:6px; padding:.75rem 1.5rem; transition:all .3s;
+    background:transparent; color:#ff004f; border:2px solid #ff004f;
+    display: inline-block; text-decoration: none;
+  }
+  .btn-video:hover, .btn-video.active {
+    background:#ff004f; color:#fff; transform:translateY(-2px);
+    box-shadow:0 4px 12px rgba(255,0,79,0.5);
+  }
+
+  .video-container {
+    width:100%; max-width:800px; margin: 1rem auto;
+    border:4px solid #fff; border-radius:8px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+    background-color: #000; /* Background for video player */
+  }
+  .video-container video { width: 100%; display: block; border-radius:6px; }
+
+  .status-banner {
+    padding: 1rem; margin: 1rem auto; border-radius: 6px;
+    text-align: center; font-weight: 500; max-width: 800px;
+  }
+  .status-banner.pending { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+  .status-banner.processing { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+  .status-banner.completed { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+  .status-banner.failed { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  
+  .dashboard-table {
+    width:100%; border-collapse:collapse; margin:2rem auto; max-width: 1000px;
+  }
+  .dashboard-table th, .dashboard-table td {
+    padding:.75rem; text-align:center; border:1px solid rgba(0,0,0,0.1);
+  }
+  .dashboard-table thead { background:rgba(0,0,0,0.6); color:#fff; backdrop-filter:blur(4px); }
+  .dashboard-table tbody tr:nth-child(even) { background:rgba(255,255,255,0.8); }
+  .dashboard-table tbody tr:hover { background:rgba(255,0,79,0.1); }
+  .no-detections { text-align: center; padding: 1rem; color: #666; }
+
+  .action-buttons .btn-video { margin: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block hero %}
+<section class="hero-section">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>Video Processing Results</h1>
+    <p class="lead" id="video-filename-display">{{ video.original_filename|default:"Video File" }}</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="container section">
+  <div class="text-center mb-4 action-buttons">
+    <a href="{% url 'video_processor_app:video_upload' %}" class="btn-video">Upload Another Video</a>
+    {% if video.processing_status == 'pending' or video.processing_status == 'failed' %}
+      {# Placeholder for a manual "Start/Retry Processing" button if desired #}
+      {# <button id="start-processing-btn" data-video-id="{{ video.pk }}" class="btn-video primary">Start Processing</button> #}
+    {% endif %}
+  </div>
+
+  <div id="status-banner" class="status-banner {{ video.processing_status }}">
+    Current Status: <strong id="processing-status-text">{{ video.get_processing_status_display }}</strong>
+  </div>
+
+  {% if video.file %}
+  <div class="video-container">
+    <video id="video-player" controls {% if video.processing_status != 'completed' and video.processing_status != 'failed' %}poster="{% static 'images/stop_placeholder.png' %}"{% endif %}>
+      <source src="{{ video.file.url }}" type="video/mp4"> {# Adjust type if needed #}
+      Your browser does not support the video tag.
+    </video>
+  </div>
+  {% else %}
+  <p class="text-center">Video file not available.</p>
+  {% endif %}
+
+  <h3 class="text-center mt-5">Detected Defects</h3>
+  <table class="dashboard-table">
+    <thead>
+      <tr>
+        <th>Timestamp (in video)</th>
+        <th>Label</th>
+        <th>Confidence</th>
+        <th>Bounding Box (x1, y1, x2, y2)</th>
+      </tr>
+    </thead>
+    <tbody id="dashboard-table-body">
+      {% if video.processing_status == 'completed' and not detections %}
+        <tr><td colspan="4" class="no-detections">No defects detected.</td></tr>
+      {% endif %}
+      {% for det in detections %} {# Initial detections if page loaded after completion #}
+      <tr>
+        <td>{{ det.timestamp_in_video|floatformat:"3" }}s</td> {# Format as seconds initially #}
+        <td>{{ det.label }}</td>
+        <td>{{ det.confidence|floatformat:"2" }}</td>
+        <td>[{{ det.bounding_box_x1 }}, {{ det.bounding_box_y1 }}, {{ det.bounding_box_x2 }}, {{ det.bounding_box_y2 }}]</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="text-center mt-3">
+      <button id="reset-dashboard-btn" class="btn-video" style="display:none;">Clear Displayed Detections</button>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const videoId = {{ video.pk }};
+  const statusBanner = document.getElementById('status-banner');
+  const statusText = document.getElementById('processing-status-text');
+  const tableBody = document.getElementById('dashboard-table-body');
+  const videoPlayer = document.getElementById('video-player');
+  const videoFilenameDisplay = document.getElementById('video-filename-display');
+  const resetDashboardBtn = document.getElementById('reset-dashboard-btn');
+
+  let pollInterval = null;
+  let initialStatus = "{{ video.processing_status }}";
+
+  function formatTimestamp(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds * 1000) % 1000);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
+  }
+
+  function updateDashboard(detections) {
+    tableBody.innerHTML = ''; // Clear existing
+    if (detections && detections.length > 0) {
+      resetDashboardBtn.style.display = 'inline-block';
+      detections.forEach(item => {
+        const row = document.createElement('tr');
+        // The timestamp from API is already formatted HH:MM:SS.ms
+        row.innerHTML = `
+          <td>${item.timestamp_in_video}</td> 
+          <td>${item.label}</td>
+          <td>${item.confidence}</td>
+          <td>[${item.bounding_box.join(', ')}]</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    } else {
+      resetDashboardBtn.style.display = 'none';
+      tableBody.innerHTML = '<tr><td colspan="4" class="no-detections">No defects detected yet or processing.</td></tr>';
+    }
+  }
+  
+  resetDashboardBtn.addEventListener('click', () => {
+      tableBody.innerHTML = '<tr><td colspan="4" class="no-detections">Dashboard cleared by user.</td></tr>';
+      resetDashboardBtn.style.display = 'none';
+  });
+
+  function fetchData() {
+    fetch(`/video/results/${videoId}/data/`)
+      .then(response => response.json())
+      .then(data => {
+        statusText.textContent = data.processing_status.charAt(0).toUpperCase() + data.processing_status.slice(1);
+        statusBanner.className = `status-banner ${data.processing_status}`;
+        
+        if (data.original_filename) {
+            videoFilenameDisplay.textContent = data.original_filename;
+        }
+        if (data.video_url && videoPlayer && videoPlayer.currentSrc !== data.video_url) {
+            // This might not be necessary if URL doesn't change, but good for dynamic sources
+            // videoPlayer.src = data.video_url; 
+        }
+
+        if (data.processing_status === 'completed') {
+          updateDashboard(data.detections);
+          if (data.detections.length === 0) {
+             tableBody.innerHTML = '<tr><td colspan="4" class="no-detections">Processing complete. No defects detected.</td></tr>';
+          }
+          clearInterval(pollInterval);
+          pollInterval = null;
+        } else if (data.processing_status === 'failed') {
+          tableBody.innerHTML = '<tr><td colspan="4" class="no-detections" style="color:red;">Processing failed.</td></tr>';
+          clearInterval(pollInterval);
+          pollInterval = null;
+        } else if (data.processing_status === 'processing' || data.processing_status === 'pending') {
+          // Optionally update dashboard with partial results if your backend supports it
+          // For now, we only update fully on 'completed'
+          if (tableBody.querySelectorAll('tr').length === 0 || tableBody.querySelector('.no-detections')) {
+             tableBody.innerHTML = '<tr><td colspan="4" class="no-detections">Processing in progress... Detections will appear once complete.</td></tr>';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching video processing data:', error);
+        // Optionally stop polling on multiple errors
+      });
+  }
+
+  // Initial call to populate dashboard if already completed
+  if (initialStatus === 'completed') {
+      fetchData(); // Will populate from existing detections
+  } else if (initialStatus === 'failed') {
+      statusText.textContent = "Failed";
+      statusBanner.className = "status-banner failed";
+      tableBody.innerHTML = '<tr><td colspan="4" class="no-detections" style="color:red;">Processing failed.</td></tr>';
+  } else if (initialStatus === 'pending' || initialStatus === 'processing') {
+      // Start polling if processing is ongoing or pending (might be picked up by worker)
+      pollInterval = setInterval(fetchData, 5000); // Poll every 5 seconds
+      fetchData(); // Initial fetch
+  }
+  
+  // Example for a manual start button (if you add one)
+  // const startProcessingBtn = document.getElementById('start-processing-btn');
+  // if(startProcessingBtn) {
+  //   startProcessingBtn.addEventListener('click', () => {
+  //     fetch(`/video/process/${videoId}/start/`, { method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}' }})
+  //       .then(response => response.json())
+  //       .then(data => {
+  //         if(data.status === 'triggered' || data.status === 'processing') {
+  //           statusText.textContent = "Processing...";
+  //           statusBanner.className = "status-banner processing";
+  //           if (!pollInterval) {
+  //             pollInterval = setInterval(fetchData, 5000);
+  //           }
+  //         } else {
+  //           alert(data.message || "Could not start processing.");
+  //         }
+  //       })
+  //       .catch(err => console.error("Error triggering processing:", err));
+  //   });
+  // }
+
+});
+</script>
+{% endblock %}
